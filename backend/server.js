@@ -7,7 +7,16 @@ dotenv.config();
 const app = express();
 const path = require('path');
 
-app.use(cors());
+// CORS configuration for production
+const corsOptions = {
+    origin: [
+        'http://localhost:5173',
+        'https://college-erp-frontend.onrender.com',
+        process.env.FRONTEND_URL
+    ].filter(Boolean),
+    credentials: true
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Serve static files from uploads directory
