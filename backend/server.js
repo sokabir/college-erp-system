@@ -62,6 +62,3 @@ process.on('uncaughtException', (err) => {
     console.error(err.name, err.message);
     process.exit(1);
 });
-
-// Export app for Vercel serverless
-module.exports = app;

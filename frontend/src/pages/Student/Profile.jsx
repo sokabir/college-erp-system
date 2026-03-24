@@ -43,6 +43,53 @@ const StudentProfile = () => {
             </div>
 
             <div style={{ display: 'grid', gap: '1.5rem' }}>
+                {/* Profile Picture Card */}
+                <div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
+                    <div style={{
+                        width: '150px',
+                        height: '150px',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        border: '4px solid var(--primary-color)',
+                        margin: '0 auto 1rem',
+                        backgroundColor: '#f1f5f9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        {profile.profile_pic ? (
+                            <img 
+                                src={`http://localhost:5000/${profile.profile_pic}`}
+                                alt={`${profile.first_name} ${profile.last_name}`}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'flex';
+                                }}
+                            />
+                        ) : null}
+                        <div style={{
+                            display: profile.profile_pic ? 'none' : 'flex',
+                            width: '100%',
+                            height: '100%',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '3rem',
+                            fontWeight: 'bold',
+                            color: 'var(--primary-color)',
+                            backgroundColor: '#e0f2fe'
+                        }}>
+                            {profile.first_name?.charAt(0)}{profile.last_name?.charAt(0)}
+                        </div>
+                    </div>
+                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem' }}>
+                        {profile.first_name} {profile.last_name}
+                    </h3>
+                    <p style={{ color: '#999', margin: 0 }}>
+                        {profile.enrollment_number}
+                    </p>
+                </div>
+
                 {/* Personal Information */}
                 <div className="glass-card" style={{ padding: '2rem' }}>
                     <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.25rem' }}>

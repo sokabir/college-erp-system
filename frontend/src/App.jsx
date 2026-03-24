@@ -5,6 +5,7 @@ import PublicLayout from './layouts/PublicLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 
 // Public Pages
+import LandingPage from './pages/Home/LandingPage';
 import Login from './pages/Auth/Login';
 import SetPassword from './pages/Auth/SetPassword';
 import AdmissionForm from './pages/Student/AdmissionForm';
@@ -50,7 +51,7 @@ function App() {
     <Routes>
       {/* Public Routes */}
       <Route element={<PublicLayout />}>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/set-password" element={<SetPassword />} />
         <Route path="/apply" element={<AdmissionForm />} />

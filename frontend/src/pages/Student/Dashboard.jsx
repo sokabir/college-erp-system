@@ -69,14 +69,53 @@ const StudentDashboard = () => {
 
     return (
         <div className="animate-fade-in">
-            {/* Welcome Section */}
-            <div style={{ marginBottom: '2rem' }}>
-                <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.75rem' }}>
-                    Welcome back, {profile.first_name}! 👋
-                </h2>
-                <p style={{ color: '#999', margin: 0 }}>
-                    Here's what's happening with your academics today
-                </p>
+            {/* Welcome Section with Profile Picture */}
+            <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                <div style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    border: '3px solid var(--primary-color)',
+                    flexShrink: 0,
+                    backgroundColor: '#f1f5f9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    {profile.profile_pic ? (
+                        <img 
+                            src={`http://localhost:5000/${profile.profile_pic}`}
+                            alt={`${profile.first_name} ${profile.last_name}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                            }}
+                        />
+                    ) : null}
+                    <div style={{
+                        display: profile.profile_pic ? 'none' : 'flex',
+                        width: '100%',
+                        height: '100%',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '2rem',
+                        fontWeight: 'bold',
+                        color: 'var(--primary-color)',
+                        backgroundColor: '#e0f2fe'
+                    }}>
+                        {profile.first_name?.charAt(0)}{profile.last_name?.charAt(0)}
+                    </div>
+                </div>
+                <div>
+                    <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.75rem' }}>
+                        Welcome back, {profile.first_name}! 👋
+                    </h2>
+                    <p style={{ color: '#999', margin: 0 }}>
+                        Here's what's happening with your academics today
+                    </p>
+                </div>
             </div>
 
             {/* Stats Grid */}

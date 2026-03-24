@@ -106,12 +106,13 @@ const decideAdmission = async (req, res) => {
             const randomCode = Math.floor(1000 + Math.random() * 9000);
             const enrollmentNumber = `ENR${year}${randomCode}`;
 
-            // 5. Create Student Record with guardian info
+            // 5. Create Student Record with guardian info and profile picture
             const studentData = {
                 user_id: newUserId,
                 enrollment_number: enrollmentNumber,
                 first_name: application.first_name,
                 last_name: application.last_name,
+                profile_pic: application.document_photo, // Use passport photo as profile picture
                 mobile_number: application.mobile_number,
                 gender: application.gender,
                 dob: application.dob,

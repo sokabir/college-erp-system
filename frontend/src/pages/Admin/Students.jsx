@@ -255,13 +255,54 @@ const AdminStudents = () => {
                             <X size={24} />
                         </button>
 
-                        <h2 style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {/* Profile Picture */}
+                        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                            <div style={{
+                                width: '120px',
+                                height: '120px',
+                                borderRadius: '50%',
+                                overflow: 'hidden',
+                                border: '4px solid var(--primary-color)',
+                                margin: '0 auto 1rem',
+                                backgroundColor: '#f1f5f9',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                {selectedStudent.profile_pic ? (
+                                    <img 
+                                        src={`http://localhost:5000/${selectedStudent.profile_pic}`}
+                                        alt={`${selectedStudent.first_name} ${selectedStudent.last_name}`}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            e.target.nextSibling.style.display = 'flex';
+                                        }}
+                                    />
+                                ) : null}
+                                <div style={{
+                                    display: selectedStudent.profile_pic ? 'none' : 'flex',
+                                    width: '100%',
+                                    height: '100%',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '2.5rem',
+                                    fontWeight: 'bold',
+                                    color: 'var(--primary-color)',
+                                    backgroundColor: '#e0f2fe'
+                                }}>
+                                    {selectedStudent.first_name?.charAt(0)}{selectedStudent.last_name?.charAt(0)}
+                                </div>
+                            </div>
+                        </div>
+
+                        <h2 style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
                             {selectedStudent.first_name} {selectedStudent.last_name}
                             <span className={`badge ${selectedStudent.status === 'ACTIVE' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.75rem', verticalAlign: 'middle' }}>
                                 {selectedStudent.status}
                             </span>
                         </h2>
-                        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Enrollment No: <strong>{selectedStudent.enrollment_number}</strong></p>
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', textAlign: 'center' }}>Enrollment No: <strong>{selectedStudent.enrollment_number}</strong></p>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
                             {/* Personal Details */}

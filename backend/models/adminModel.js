@@ -7,36 +7,39 @@ class AdminModel {
         const [courseCount] = await db.query("SELECT COUNT(*) as count FROM courses");
         const [pendingAdmissions] = await db.query("SELECT COUNT(*) as count FROM admission_applications WHERE status = 'PENDING'");
 
-        // Fees overview (all time)
+        // Fees overview (all time) - using student_fee_components table
         const [feesOverview] = await db.query(`
             SELECT 
-                COALESCE(SUM(amount_due), 0) as total_expected,
-                COALESCE((SELECT SUM(amount_paid) FROM payments), 0) as total_collected
-            FROM fees
+                COALESCE(SUM(tuition_fee + library_fee + lab_fee + exam_fee), 0) as total_expected,
+                COALESCE(SUM(tuition_paid + library_paid + lab_paid + exam_paid), 0) as total_collected
+            FROM student_fee_components
         `);
 
         // Extra Finance: Collected this month
         const [financeMonth] = await db.query(`
             SELECT COALESCE(SUM(amount_paid), 0) as collected_this_month 
-            FROM payments 
-            WHERE MONTH(payment_date) = MONTH(CURRENT_DATE()) AND YEAR(payment_date) = YEAR(CURRENT_DATE())
+            FROM component_payments 
+            WHERE MONTH(payment_date) = MONTH(CURRENT_DATE()) 
+            AND YEAR(payment_date) = YEAR(CURRENT_DATE())
+            AND payment_status = 'SUCCESS'
         `);
 
         // Extra Finance: Pending total
         const [pendingFees] = await db.query(`
-            SELECT COALESCE(SUM(amount_due), 0) - COALESCE(SUM(
-                (SELECT COALESCE(SUM(amount_paid), 0) FROM payments WHERE fee_id = f.id)
-            ), 0) as pending_total
-            FROM fees f
+            SELECT 
+                COALESCE(SUM(tuition_fee + library_fee + lab_fee + exam_fee), 0) - 
+                COALESCE(SUM(tuition_paid + library_paid + lab_paid + exam_paid), 0) as pending_total
+            FROM student_fee_components
         `);
 
         // Extra Finance: Recent 5 payments
         const [recentPayments] = await db.query(`
-            SELECT p.id, p.amount_paid, p.payment_date, p.transaction_id, s.first_name, s.last_name 
-            FROM payments p
-            JOIN fees f ON p.fee_id = f.id
-            JOIN students s ON f.student_id = s.id
-            ORDER BY p.payment_date DESC LIMIT 5
+            SELECT cp.id, cp.amount_paid, cp.payment_date, cp.transaction_id, 
+                   s.first_name, s.last_name 
+            FROM component_payments cp
+            JOIN students s ON cp.student_id = s.id
+            WHERE cp.payment_status = 'SUCCESS'
+            ORDER BY cp.payment_date DESC LIMIT 5
         `);
 
         // Admissions Overview (Today)

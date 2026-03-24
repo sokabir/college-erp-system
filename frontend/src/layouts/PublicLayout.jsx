@@ -4,10 +4,9 @@ const PublicLayout = () => {
     return (
         <div style={{
             minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)'
+            width: '100%',
+            margin: 0,
+            padding: 0
         }}>
             <Outlet />
         </div>

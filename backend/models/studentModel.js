@@ -7,6 +7,7 @@ class StudentModel {
             enrollment_number,
             first_name,
             last_name,
+            profile_pic,
             mobile_number,
             gender,
             dob,
@@ -19,9 +20,9 @@ class StudentModel {
 
         const [result] = await connection.query(
             `INSERT INTO students 
-            (user_id, enrollment_number, first_name, last_name, mobile_number, gender, dob, address, guardian_name, guardian_number, guardian_relation, course_id, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE')`,
-            [user_id, enrollment_number, first_name, last_name, mobile_number, gender, dob, address, guardian_name, guardian_number, guardian_relation, course_id]
+            (user_id, enrollment_number, first_name, last_name, profile_pic, mobile_number, gender, dob, address, guardian_name, guardian_number, guardian_relation, course_id, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE')`,
+            [user_id, enrollment_number, first_name, last_name, profile_pic, mobile_number, gender, dob, address, guardian_name, guardian_number, guardian_relation, course_id]
         );
 
         return result.insertId;
