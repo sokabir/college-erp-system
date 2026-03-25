@@ -13,9 +13,10 @@ class AdmissionModel {
 
     static async getApplicationById(id) {
         const [rows] = await db.query(`
-            SELECT a.*, c.name as course_name 
+            SELECT a.*, c.name as course_name, u.email
             FROM admission_applications a
             JOIN courses c ON a.course_applied = c.id
+            LEFT JOIN users u ON a.user_id = u.id
             WHERE a.id = ?
         `, [id]);
         return rows[0];

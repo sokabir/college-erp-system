@@ -40,7 +40,8 @@ const {
     getPaymentHistory,
     promoteStudents,
     getAllLeaveApplications,
-    reviewLeaveApplication
+    reviewLeaveApplication,
+    recordCashPayment
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
 const { roleCheck } = require('../middleware/roleMiddleware');
@@ -96,6 +97,7 @@ router.delete('/notices/:id', deleteNotice);
 router.put('/courses/:id/fees', updateCourseFees);
 router.get('/student-fees', getStudentFees);
 router.get('/payment-history', getPaymentHistory);
+router.post('/record-cash-payment', recordCashPayment);
 
 // Student promotion route
 router.post('/students/promote', promoteStudents);

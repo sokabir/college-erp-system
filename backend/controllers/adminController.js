@@ -89,30 +89,41 @@ const decideAdmission = async (req, res) => {
             const tokenExpires = new Date();
             tokenExpires.setHours(tokenExpires.getHours() + 24); // Token valid for 24 hours
 
-            // 2. Create User Account (No password initially, but must provide a dummy hash to satisfy DB)
-            const dummyHash = await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 10);
-            const [userResult] = await connection.query(
-                `INSERT INTO users (email, password_hash, role, reset_password_token, reset_password_expires) 
-                 VALUES (?, ?, ?, ?, ?)`,
-                [application.email, dummyHash, 'student', resetToken, tokenExpires]
-            );
-            const newUserId = userResult.insertId;
-
-            // 3. Update Admission Application to link the new user
-            await connection.query('UPDATE admission_applications SET user_id = ? WHERE id = ?', [newUserId, applicationId]);
+            // 2. Check if user already exists (from application submission)
+            let userId;
+            if (application.user_id) {
+                // User already exists, just update with reset token
+                userId = application.user_id;
+                await connection.query(
+                    'UPDATE users SET reset_password_token = ?, reset_password_expires = ? WHERE id = ?',
+                    [resetToken, tokenExpires, userId]
+                );
+            } else {
+                // Create new user account (old applications that don't have user_id)
+                const dummyHash = await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 10);
+                const [userResult] = await connection.query(
+                    `INSERT INTO users (email, password_hash, role, reset_password_token, reset_password_expires) 
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [application.email, dummyHash, 'student', resetToken, tokenExpires]
+                );
+                userId = userResult.insertId;
+                
+                // Update Admission Application to link the new user
+                await connection.query('UPDATE admission_applications SET user_id = ? WHERE id = ?', [userId, applicationId]);
+            }
 
             // 4. Generate Enrollment Number
             const year = new Date().getFullYear();
             const randomCode = Math.floor(1000 + Math.random() * 9000);
             const enrollmentNumber = `ENR${year}${randomCode}`;
 
-            // 5. Create Student Record with guardian info and profile picture
+            // 5. Create Student Record with guardian info (no profile picture initially since passport photo removed)
             const studentData = {
-                user_id: newUserId,
+                user_id: userId,
                 enrollment_number: enrollmentNumber,
                 first_name: application.first_name,
                 last_name: application.last_name,
-                profile_pic: application.document_photo, // Use passport photo as profile picture
+                profile_pic: null, // No profile picture initially - can be added later
                 mobile_number: application.mobile_number,
                 gender: application.gender,
                 dob: application.dob,
@@ -987,6 +998,14 @@ const getStudentFees = async (req, res) => {
                 s.first_name,
                 s.last_name,
                 c.name as course_name,
+                COALESCE(sfc.tuition_fee, 0) as tuition_fee,
+                COALESCE(sfc.tuition_paid, 0) as tuition_paid,
+                COALESCE(sfc.library_fee, 0) as library_fee,
+                COALESCE(sfc.library_paid, 0) as library_paid,
+                COALESCE(sfc.lab_fee, 0) as lab_fee,
+                COALESCE(sfc.lab_paid, 0) as lab_paid,
+                COALESCE(sfc.exam_fee, 0) as exam_fee,
+                COALESCE(sfc.exam_paid, 0) as exam_paid,
                 COALESCE(sfc.tuition_fee, 0) + COALESCE(sfc.library_fee, 0) + 
                 COALESCE(sfc.lab_fee, 0) + COALESCE(sfc.exam_fee, 0) as total_due,
                 COALESCE(sfc.tuition_paid, 0) + COALESCE(sfc.library_paid, 0) + 
@@ -1134,6 +1153,109 @@ const getPaymentHistory = async (req, res) => {
     }
 };
 
+// @desc    Record cash payment for student
+// @route   POST /api/admin/record-cash-payment
+// @access  Private/Admin
+const recordCashPayment = async (req, res) => {
+    const { student_id, tuition_fee, library_fee, lab_fee, exam_fee, payment_date, receipt_number, notes, total_amount } = req.body;
+
+    if (!student_id || !payment_date) {
+        return res.status(400).json({ message: 'Student ID and payment date are required' });
+    }
+
+    if (!total_amount || total_amount <= 0) {
+        return res.status(400).json({ message: 'Total payment amount must be greater than 0' });
+    }
+
+    const connection = await db.getConnection();
+
+    try {
+        await connection.beginTransaction();
+
+        // Get student's current fee component record
+        const [feeRecords] = await connection.query(`
+            SELECT * FROM student_fee_components
+            WHERE student_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        `, [student_id]);
+
+        if (feeRecords.length === 0) {
+            return res.status(404).json({ message: 'Student fee record not found' });
+        }
+
+        const feeRecord = feeRecords[0];
+        const transactionId = receipt_number || `CASH-${Date.now()}`;
+
+        // Record each component payment if amount > 0
+        const components = [
+            { type: 'tuition', amount: parseFloat(tuition_fee || 0) },
+            { type: 'library', amount: parseFloat(library_fee || 0) },
+            { type: 'lab', amount: parseFloat(lab_fee || 0) },
+            { type: 'exam', amount: parseFloat(exam_fee || 0) }
+        ];
+
+        for (const component of components) {
+            if (component.amount > 0) {
+                // Insert payment record
+                await connection.query(`
+                    INSERT INTO component_payments 
+                    (fee_component_id, student_id, component_type, amount_paid, payment_method, transaction_id, payment_status, payment_date)
+                    VALUES (?, ?, ?, ?, 'CASH', ?, 'SUCCESS', ?)
+                `, [
+                    feeRecord.id,
+                    student_id,
+                    component.type,
+                    component.amount,
+                    transactionId,
+                    payment_date
+                ]);
+
+                // Update fee component paid amount
+                const paidColumn = `${component.type}_paid`;
+                await connection.query(`
+                    UPDATE student_fee_components
+                    SET ${paidColumn} = ${paidColumn} + ?
+                    WHERE id = ?
+                `, [component.amount, feeRecord.id]);
+            }
+        }
+
+        // Update overall status
+        const [updated] = await connection.query('SELECT * FROM student_fee_components WHERE id = ?', [feeRecord.id]);
+        const updatedRecord = updated[0];
+        
+        const totalFee = parseFloat(updatedRecord.tuition_fee) + parseFloat(updatedRecord.library_fee) + 
+                        parseFloat(updatedRecord.lab_fee) + parseFloat(updatedRecord.exam_fee);
+        const totalPaid = parseFloat(updatedRecord.tuition_paid) + parseFloat(updatedRecord.library_paid) + 
+                         parseFloat(updatedRecord.lab_paid) + parseFloat(updatedRecord.exam_paid);
+
+        let status = 'PENDING';
+        if (totalPaid >= totalFee) {
+            status = 'PAID';
+        } else if (totalPaid > 0) {
+            status = 'PARTIAL';
+        }
+
+        await connection.query('UPDATE student_fee_components SET status = ? WHERE id = ?', [status, feeRecord.id]);
+
+        await connection.commit();
+
+        res.json({
+            message: 'Cash payment recorded successfully',
+            transaction_id: transactionId,
+            status: status,
+            total_amount: total_amount
+        });
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error recording cash payment:', error);
+        res.status(500).json({ message: 'Server error recording cash payment' });
+    } finally {
+        connection.release();
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getAllAdmissions,
@@ -1174,5 +1296,6 @@ module.exports = {
     updateCourseFees,
     getStudentFees,
     promoteStudents,
-    getPaymentHistory
+    getPaymentHistory,
+    recordCashPayment
 };

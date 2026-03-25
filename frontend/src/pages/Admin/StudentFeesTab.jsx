@@ -1,19 +1,11 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { Search, DollarSign, CheckCircle, AlertCircle, Clock, Plus } from 'lucide-react';
+import { Search, DollarSign, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 
 const StudentFeesTab = () => {
     const [students, setStudents] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('ALL');
-    const [showCashPaymentModal, setShowCashPaymentModal] = useState(false);
-    const [selectedStudent, setSelectedStudent] = useState(null);
-    const [cashPaymentData, setCashPaymentData] = useState({
-        amount: '',
-        payment_date: new Date().toISOString().split('T')[0],
-        receipt_number: '',
-        notes: ''
-    });
 
     useEffect(() => {
         fetchStudentFees();
@@ -47,33 +39,6 @@ const StudentFeesTab = () => {
 
     const calculateBalance = (student) => {
         return (student.total_due || 0) - (student.total_paid || 0);
-    };
-
-    const handleRecordCashPayment = (student) => {
-        setSelectedStudent(student);
-        setCashPaymentData({
-            amount: '',
-            payment_date: new Date().toISOString().split('T')[0],
-            receipt_number: `CASH-${Date.now()}`,
-            notes: ''
-        });
-        setShowCashPaymentModal(true);
-    };
-
-    const submitCashPayment = async (e) => {
-        e.preventDefault();
-        try {
-            await api.post('/admin/record-cash-payment', {
-                student_id: selectedStudent.id,
-                ...cashPaymentData
-            });
-            alert('Cash payment recorded successfully! Receipt will be visible in student account.');
-            setShowCashPaymentModal(false);
-            fetchStudentFees();
-        } catch (error) {
-            console.error('Error recording cash payment:', error);
-            alert('Failed to record cash payment');
-        }
     };
 
     return (
@@ -152,7 +117,6 @@ const StudentFeesTab = () => {
                                 <th>Paid</th>
                                 <th>Balance</th>
                                 <th>Status</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -196,22 +160,6 @@ const StudentFeesTab = () => {
                                                 {student.fee_status}
                                             </span>
                                         </td>
-                                        <td>
-                                            <button
-                                                onClick={() => handleRecordCashPayment(student)}
-                                                className="btn-secondary"
-                                                style={{ 
-                                                    padding: '0.5rem 1rem',
-                                                    fontSize: '0.875rem',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: '0.5rem'
-                                                }}
-                                            >
-                                                <Plus size={16} />
-                                                Cash Payment
-                                            </button>
-                                        </td>
                                     </tr>
                                 );
                             })}
@@ -224,91 +172,6 @@ const StudentFeesTab = () => {
                     <p style={{ color: 'var(--text-muted)' }}>
                         {searchTerm || filterStatus !== 'ALL' ? 'No students found matching your filters' : 'No fee records available'}
                     </p>
-                </div>
-            )}
-
-            {/* Cash Payment Modal */}
-            {showCashPaymentModal && (
-                <div className="modal-overlay" onClick={() => setShowCashPaymentModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-                        <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem', fontWeight: 600 }}>
-                            Record Cash Payment
-                        </h3>
-                        {selectedStudent && (
-                            <div style={{ 
-                                padding: '1rem', 
-                                backgroundColor: '#f8fafc', 
-                                borderRadius: '8px', 
-                                marginBottom: '1.5rem' 
-                            }}>
-                                <p style={{ marginBottom: '0.5rem' }}>
-                                    <strong>Student:</strong> {selectedStudent.first_name} {selectedStudent.last_name}
-                                </p>
-                                <p style={{ marginBottom: '0.5rem' }}>
-                                    <strong>Enrollment:</strong> {selectedStudent.enrollment_number}
-                                </p>
-                                <p>
-                                    <strong>Balance Due:</strong> ₹{calculateBalance(selectedStudent).toLocaleString('en-IN')}
-                                </p>
-                            </div>
-                        )}
-                        <form onSubmit={submitCashPayment}>
-                            <div className="form-group">
-                                <label>Amount Paid (₹) *</label>
-                                <input
-                                    type="number"
-                                    className="form-input"
-                                    value={cashPaymentData.amount}
-                                    onChange={(e) => setCashPaymentData({...cashPaymentData, amount: e.target.value})}
-                                    required
-                                    min="1"
-                                    step="0.01"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Payment Date *</label>
-                                <input
-                                    type="date"
-                                    className="form-input"
-                                    value={cashPaymentData.payment_date}
-                                    onChange={(e) => setCashPaymentData({...cashPaymentData, payment_date: e.target.value})}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Receipt Number</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={cashPaymentData.receipt_number}
-                                    onChange={(e) => setCashPaymentData({...cashPaymentData, receipt_number: e.target.value})}
-                                    placeholder="Auto-generated if left empty"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Notes</label>
-                                <textarea
-                                    className="form-input"
-                                    value={cashPaymentData.notes}
-                                    onChange={(e) => setCashPaymentData({...cashPaymentData, notes: e.target.value})}
-                                    rows="3"
-                                    placeholder="Optional notes about this payment"
-                                />
-                            </div>
-                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowCashPaymentModal(false)}
-                                    className="btn-secondary"
-                                >
-                                    Cancel
-                                </button>
-                                <button type="submit" className="btn-primary">
-                                    Record Payment
-                                </button>
-                            </div>
-                        </form>
-                    </div>
                 </div>
             )}
         </div>

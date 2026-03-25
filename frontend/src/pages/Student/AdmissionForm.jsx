@@ -34,9 +34,16 @@ const AdmissionForm = () => {
     });
 
     const [files, setFiles] = useState({
-        document_photo: null,
+        document_aadhar: null,
         document_marksheet: null,
-        document_leaving_cert: null
+        document_leaving: null,
+        document_migration: null,
+        document_entrance_exam: null,
+        document_caste: null,
+        document_address_proof: null,
+        document_birth_certificate: null,
+        document_income_cert: null,
+        document_gap_cert: null
     });
 
     const [submitStatus, setSubmitStatus] = useState({ loading: false, error: '', success: false });
@@ -63,10 +70,19 @@ const AdmissionForm = () => {
                 data.append(key, formData[key]);
             });
 
-            // Append file fields
-            if (files.document_photo) data.append('document_photo', files.document_photo);
+            // Append file fields (required documents)
+            if (files.document_aadhar) data.append('document_aadhar', files.document_aadhar);
             if (files.document_marksheet) data.append('document_marksheet', files.document_marksheet);
-            if (files.document_leaving_cert) data.append('document_leaving_cert', files.document_leaving_cert);
+            if (files.document_leaving) data.append('document_leaving', files.document_leaving);
+            if (files.document_address_proof) data.append('document_address_proof', files.document_address_proof);
+            if (files.document_birth_certificate) data.append('document_birth_certificate', files.document_birth_certificate);
+            if (files.document_income_cert) data.append('document_income_cert', files.document_income_cert);
+            
+            // Optional documents
+            if (files.document_migration) data.append('document_migration', files.document_migration);
+            if (files.document_entrance_exam) data.append('document_entrance_exam', files.document_entrance_exam);
+            if (files.document_caste) data.append('document_caste', files.document_caste);
+            if (files.document_gap_cert) data.append('document_gap_cert', files.document_gap_cert);
 
             // Important: do not set Content-Type header manually when using FormData and Axios
             await api.post('/auth/apply', data, {
@@ -117,7 +133,7 @@ const AdmissionForm = () => {
                     accept={accept}
                     onChange={handleFileChange}
                     style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                    required={name === 'document_photo'} // Photo usually required, others might depend. Making photo required for example.
+                    required={['document_aadhar', 'document_marksheet', 'document_leaving', 'document_address_proof', 'document_birth_certificate', 'document_income_cert'].includes(name)}
                 />
                 {files[name] ? (
                     <div style={{ color: 'var(--success-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
@@ -281,11 +297,24 @@ const AdmissionForm = () => {
                 </div>
 
                 <h3 style={{ color: 'var(--primary-color)', marginBottom: '1.5rem', fontSize: '1.25rem' }}>6. Document Uploads</h3>
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Please upload clear images or PDF files (max 5MB each).</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                    {renderFileInput('Passport Size Photo *', 'document_photo', 'image/*')}
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Please upload clear images or PDF files (max 5MB each). Required documents are marked with *</p>
+                
+                <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--text-color)' }}>Required Documents</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+                    {renderFileInput('Aadhar Card *', 'document_aadhar')}
                     {renderFileInput('Marksheet *', 'document_marksheet')}
-                    {renderFileInput('Leaving Certificate', 'document_leaving_cert')}
+                    {renderFileInput('Leaving Certificate *', 'document_leaving')}
+                    {renderFileInput('Address Proof *', 'document_address_proof')}
+                    {renderFileInput('Birth Certificate *', 'document_birth_certificate')}
+                    {renderFileInput('Income Certificate *', 'document_income_cert')}
+                </div>
+
+                <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--text-color)' }}>Optional Documents</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                    {renderFileInput('Migration Certificate', 'document_migration')}
+                    {renderFileInput('Entrance Exam Marksheet', 'document_entrance_exam')}
+                    {renderFileInput('Caste Certificate', 'document_caste')}
+                    {renderFileInput('Gap Certificate', 'document_gap_cert')}
                 </div>
 
                 <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>

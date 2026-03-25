@@ -19,7 +19,7 @@ const applyAdmission = async (req, res) => {
 
         const user_id = req.user.id; // User must be logged in to apply
 
-        // Get file paths
+        // Get file paths for all documents
         const getFilePath = (fieldName) => {
             if (req.files && req.files[fieldName] && req.files[fieldName].length > 0) {
                 return `/uploads/${req.files[fieldName][0].filename}`;
@@ -27,24 +27,33 @@ const applyAdmission = async (req, res) => {
             return null;
         };
 
-        const document_photo = getFilePath('document_photo');
+        const document_aadhar = getFilePath('document_aadhar');
         const document_marksheet = getFilePath('document_marksheet');
-        const document_leaving_cert = getFilePath('document_leaving_cert');
+        const document_leaving = getFilePath('document_leaving');
+        const document_migration = getFilePath('document_migration');
+        const document_entrance_exam = getFilePath('document_entrance_exam');
+        const document_caste = getFilePath('document_caste');
+        const document_address_proof = getFilePath('document_address_proof');
+        const document_birth_certificate = getFilePath('document_birth_certificate');
+        const document_income_cert = getFilePath('document_income_cert');
+        const document_gap_cert = getFilePath('document_gap_cert');
 
         const [result] = await db.query(
             `INSERT INTO admission_applications 
             (user_id, first_name, last_name, dob, mobile_number, gender, nationality, category,
              address, city, district, state, pin_code,
              guardian_name, guardian_number, guardian_relation,
-             previous_education, qualification_level, board_university, school_college_name, year_of_passing, marks, course_applied, 
-             document_photo, document_marksheet, document_leaving_cert, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
+             qualification_level, board_university, school_college_name, year_of_passing, marks, course_applied, 
+             document_aadhar, document_marksheet, document_leaving, document_migration, document_entrance_exam,
+             document_caste, document_address_proof, document_birth_certificate, document_income_cert, document_gap_cert, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
             [
                 user_id, first_name, last_name, dob, mobile_number, gender, nationality, category,
                 address, city, district, state, pin_code,
                 guardian_name, guardian_number, guardian_relation,
-                qualification_level, qualification_level, board_university, school_college_name, year_of_passing, percentage_cgpa, course_applied,
-                document_photo, document_marksheet, document_leaving_cert
+                qualification_level, board_university, school_college_name, year_of_passing, percentage_cgpa, course_applied,
+                document_aadhar, document_marksheet, document_leaving, document_migration, document_entrance_exam,
+                document_caste, document_address_proof, document_birth_certificate, document_income_cert, document_gap_cert
             ]
         );
 

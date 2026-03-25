@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
@@ -95,32 +96,54 @@ const registerAndApply = async (req, res) => {
             return null;
         };
 
-        const document_photo = getFilePath('document_photo');
+        const document_aadhar = getFilePath('document_aadhar');
         const document_marksheet = getFilePath('document_marksheet');
-        const document_leaving_cert = getFilePath('document_leaving_cert');
+        const document_leaving = getFilePath('document_leaving');
+        const document_migration = getFilePath('document_migration');
+        const document_entrance_exam = getFilePath('document_entrance_exam');
+        const document_caste = getFilePath('document_caste');
+        const document_address_proof = getFilePath('document_address_proof');
+        const document_birth_certificate = getFilePath('document_birth_certificate');
+        const document_income_cert = getFilePath('document_income_cert');
+        const document_gap_cert = getFilePath('document_gap_cert');
 
-        // 4. Create Admission Application (user_id is NULL for now)
+        // 4. Create Admission Application (user_id will be set when admin approves)
+        // First, create a temporary user account
+        const dummyHash = await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 10);
+        const [userResult] = await connection.query(
+            'INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)',
+            [email, dummyHash, 'student']
+        );
+        const tempUserId = userResult.insertId;
+
+        // Now create the admission application linked to this user
         await connection.query(
             `INSERT INTO admission_applications 
             (user_id, email, first_name, last_name, dob, mobile_number, gender, nationality, category,
              address, city, district, state, pin_code,
              guardian_name, guardian_number, guardian_relation,
              previous_education, qualification_level, board_university, school_college_name, year_of_passing, marks, course_applied, 
-             document_photo, document_marksheet, document_leaving_cert, status) 
-            VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
+             document_aadhar, document_marksheet, document_leaving, document_migration, document_entrance_exam,
+             document_caste, document_address_proof, document_birth_certificate, document_income_cert, document_gap_cert, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
             [
-                email, first_name, last_name, dob, mobile_number, gender, nationality, category,
+                tempUserId, email, first_name, last_name, dob, mobile_number, gender, nationality, category,
                 address, city, district, state, pin_code,
                 guardian_name, guardian_number, guardian_relation,
                 qualification_level, qualification_level, board_university, school_college_name, year_of_passing, percentage_cgpa, course_applied,
-                document_photo, document_marksheet, document_leaving_cert
+                document_aadhar, document_marksheet, document_leaving, document_migration, document_entrance_exam,
+                document_caste, document_address_proof, document_birth_certificate, document_income_cert, document_gap_cert
             ]
         );
 
         res.status(201).json({ message: 'Application submitted successfully pending review' });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error during application submission' });
+        console.error('=== ADMISSION APPLICATION ERROR ===');
+        console.error('Error details:', error);
+        console.error('Error message:', error.message);
+        console.error('Error code:', error.code);
+        console.error('SQL:', error.sql);
+        res.status(500).json({ message: 'Server error during application submission', error: error.message });
     } finally {
         connection.release();
     }

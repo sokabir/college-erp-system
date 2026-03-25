@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { DollarSign, FileText, Receipt } from 'lucide-react';
+import { DollarSign, FileText, Receipt, Banknote } from 'lucide-react';
 import FeeStructureTab from './FeeStructureTab';
 import StudentFeesTab from './StudentFeesTab';
+import CashPaymentsTab from './CashPaymentsTab';
 import PaymentHistoryTab from './PaymentHistoryTab';
 
 const FinanceMain = () => {
@@ -10,6 +11,7 @@ const FinanceMain = () => {
     const tabs = [
         { id: 'structure', label: 'Fee Structure', icon: <DollarSign size={18} /> },
         { id: 'students', label: 'Student Fees', icon: <FileText size={18} /> },
+        { id: 'cash', label: 'Cash Payments', icon: <Banknote size={18} /> },
         { id: 'payments', label: 'Payment History', icon: <Receipt size={18} /> }
     ];
 
@@ -57,6 +59,7 @@ const FinanceMain = () => {
             <div>
                 {activeTab === 'structure' && <FeeStructureTab />}
                 {activeTab === 'students' && <StudentFeesTab />}
+                {activeTab === 'cash' && <CashPaymentsTab />}
                 {activeTab === 'payments' && <PaymentHistoryTab />}
             </div>
         </div>

@@ -270,11 +270,23 @@ const AdmissionManagement = () => {
                         {/* Documents Section */}
                         <div style={{ backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '8px', marginBottom: '2rem' }}>
                             <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary-color)' }}><Download size={18} /> Uploaded Documents</h3>
+                            
+                            <h4 style={{ fontSize: '0.9rem', marginTop: '1rem', marginBottom: '0.75rem', color: 'var(--text-color)' }}>Required Documents</h4>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+                                {renderDocumentLink('Aadhar Card', selectedApp.document_aadhar)}
+                                {renderDocumentLink('Marksheet', selectedApp.document_marksheet)}
+                                {renderDocumentLink('Leaving Certificate', selectedApp.document_leaving)}
+                                {renderDocumentLink('Address Proof', selectedApp.document_address_proof)}
+                                {renderDocumentLink('Birth Certificate', selectedApp.document_birth_certificate)}
+                                {renderDocumentLink('Income Certificate', selectedApp.document_income_cert)}
+                            </div>
+
+                            <h4 style={{ fontSize: '0.9rem', marginTop: '1rem', marginBottom: '0.75rem', color: 'var(--text-color)' }}>Optional Documents</h4>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-                                {renderDocumentLink('Passport Photo', selectedApp.document_photo)}
-                                {renderDocumentLink('10th Marksheet', selectedApp.document_10th)}
-                                {renderDocumentLink('12th / Diploma', selectedApp.document_12th_diploma)}
-                                {renderDocumentLink('Leaving Cert.', selectedApp.document_leaving_cert)}
+                                {renderDocumentLink('Migration Certificate', selectedApp.document_migration)}
+                                {renderDocumentLink('Entrance Exam Marksheet', selectedApp.document_entrance_exam)}
+                                {renderDocumentLink('Caste Certificate', selectedApp.document_caste)}
+                                {renderDocumentLink('Gap Certificate', selectedApp.document_gap_cert)}
                             </div>
                         </div>
 
