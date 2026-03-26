@@ -11,8 +11,7 @@ const path = require('path');
 const corsOptions = {
     origin: [
         'http://localhost:5173',
-        'https://college-erp-system-phi.vercel.app',
-        'https://college-erp-frontend.onrender.com',
+        'https://college-erp-system-blue.vercel.app',
         process.env.FRONTEND_URL
     ].filter(Boolean),
     credentials: true
@@ -44,7 +43,10 @@ const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV}`);
-    console.log(`Database URL configured: ${process.env.DATABASE_URL ? 'Yes' : 'No'}`);
+    console.log(`Database Host: ${process.env.DB_HOST || 'localhost'}`);
+    console.log(`Database Port: ${process.env.DB_PORT || 3306}`);
+    console.log(`Database Name: ${process.env.DB_NAME || 'college_erp_v2'}`);
+    console.log(`Database User: ${process.env.DB_USER || 'root'}`);
 });
 
 // Handle unhandled promise rejections
