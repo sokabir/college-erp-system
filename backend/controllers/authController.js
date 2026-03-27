@@ -10,33 +10,57 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     try {
+        console.log('=== LOGIN ATTEMPT ===');
+        console.log('Email:', email);
+        console.log('Password provided:', password ? 'Yes' : 'No');
+
         if (!email || !password) {
+            console.log('Missing email or password');
             return res.status(400).json({ message: 'Please provide email and password' });
         }
 
         const trimmedEmail = email.trim();
+        console.log('Trimmed email:', trimmedEmail);
+        
+        console.log('Querying database for user...');
         const user = await User.findByEmail(trimmedEmail);
+        console.log('User found:', user ? 'Yes' : 'No');
 
-        if (user && (await bcrypt.compare(password, user.password_hash))) {
-            const token = jwt.sign(
-                { id: user.id, role: user.role },
-                process.env.JWT_SECRET || 'supersecret_jwt_key_here',
-                { expiresIn: '30d' }
-            );
+        if (user) {
+            console.log('User details:', { id: user.id, email: user.email, role: user.role });
+            console.log('Comparing passwords...');
+            const passwordMatch = await bcrypt.compare(password, user.password_hash);
+            console.log('Password match:', passwordMatch);
 
-            res.json({
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    role: user.role
-                },
-                token
-            });
+            if (passwordMatch) {
+                const token = jwt.sign(
+                    { id: user.id, role: user.role },
+                    process.env.JWT_SECRET || 'supersecret_jwt_key_here',
+                    { expiresIn: '30d' }
+                );
+
+                console.log('Login successful');
+                res.json({
+                    user: {
+                        id: user.id,
+                        email: user.email,
+                        role: user.role
+                    },
+                    token
+                });
+            } else {
+                console.log('Password mismatch');
+                res.status(401).json({ message: 'Invalid email or password' });
+            }
         } else {
+            console.log('User not found');
             res.status(401).json({ message: 'Invalid email or password' });
         }
     } catch (error) {
-        console.error(error);
+        console.error('=== LOGIN ERROR ===');
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
         res.status(500).json({ message: 'Server error during login' });
     }
 };
