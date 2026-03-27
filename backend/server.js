@@ -9,11 +9,19 @@ const path = require('path');
 
 // CORS configuration for production
 const corsOptions = {
-    origin: [
-        'http://localhost:5173',
-        'https://college-erp-system-blue.vercel.app',
-        process.env.FRONTEND_URL
-    ].filter(Boolean),
+    origin: function (origin, callback) {
+        const allowedOrigins = [
+            'http://localhost:5173',
+            process.env.FRONTEND_URL
+        ].filter(Boolean);
+        
+        // Allow all Vercel preview and production domains
+        if (!origin || allowedOrigins.includes(origin) || origin.includes('.vercel.app')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 };
 app.use(cors(corsOptions));
