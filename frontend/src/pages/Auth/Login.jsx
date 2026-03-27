@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Lock, Mail } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -53,13 +54,31 @@ const Login = () => {
                     <div style={{ position: 'relative' }}>
                         <Lock size={18} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-muted)' }} />
                         <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             className="form-input"
-                            style={{ paddingLeft: '2.5rem' }}
+                            style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{
+                                position: 'absolute',
+                                right: 12,
+                                top: 12,
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: 'var(--text-muted)',
+                                padding: 0,
+                                display: 'flex',
+                                alignItems: 'center'
+                            }}
+                        >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                     </div>
                 </div>
 
@@ -67,10 +86,6 @@ const Login = () => {
                     Login
                 </button>
             </form>
-
-            <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem' }}>
-                <p>New Student? <Link to="/apply" style={{ color: 'var(--primary-color)', fontWeight: 600 }}>Apply for Admission</Link></p>
-            </div>
         </div>
     );
 };
