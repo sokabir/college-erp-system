@@ -98,8 +98,9 @@ const AdmissionManagement = () => {
     const renderDocumentLink = (label, path) => {
         if (!path) return <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Not Provided</span>;
 
-        // Use the backend URL (assuming it runs on port 5000)
-        const fileUrl = `http://localhost:5000${path}`;
+        // Use the backend URL from environment variable
+        const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const fileUrl = `${backendUrl}${path}`;
 
         return (
             <a href={fileUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary-color)', fontWeight: 500, textDecoration: 'none', backgroundColor: '#e0f2fe', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.875rem' }}>
