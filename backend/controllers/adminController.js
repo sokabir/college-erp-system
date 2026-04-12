@@ -19,7 +19,9 @@ const transporter = nodemailer.createTransport({
     },
     tls: {
         rejectUnauthorized: false // Allow self-signed certificates
-    }
+    },
+    // Force IPv4 to avoid IPv6 connection issues on Render
+    family: 4
 });
 
 // @desc    Get Admin Dashboard Stats
