@@ -20,8 +20,9 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "mysql2": "^3.18.0",
-    "pg": "^8.11.3",
     "nodemailer": "^8.0.1",
-    "razorpay": "^2.9.6"
+    "pg": "^8.11.3",
+    "razorpay": "^2.9.6",
+    "resend": "^6.10.0"
   }
 }

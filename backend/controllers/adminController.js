@@ -6,20 +6,10 @@ const User = require('../models/userModel');
 const db = require('../config/db');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Set up transporter for nodemailer
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT) || 465, // Changed to 465 for SSL
-    secure: true, // true for 465 (SSL), false for 587 (TLS)
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    // Force IPv4 to avoid IPv6 connection issues on Render
-    family: 4
-});
+// Initialize Resend with API key
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // @desc    Get Admin Dashboard Stats
 // @route   GET /api/admin/dashboard
@@ -135,12 +125,13 @@ const decideAdmission = async (req, res) => {
 
             await StudentModel.create(studentData, connection);
 
-            // 6. Send Email Notification
+            // 6. Send Email Notification using Resend
             const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
             const setupLink = `${frontendUrl}/set-password?token=${resetToken}&email=${encodeURIComponent(application.email)}`;
 
-            const mailOptions = {
-                from: process.env.EMAIL_USER,
+            // Send email asynchronously (don't block the response)
+            resend.emails.send({
+                from: 'College ERP <onboarding@resend.dev>', // Use Resend's test domain or your verified domain
                 to: application.email,
                 subject: 'Admission Approved - Action Required: Setup Your Account',
                 html: `
@@ -153,24 +144,19 @@ const decideAdmission = async (req, res) => {
                     <p>If the button doesn't work, copy and paste this link into your browser: <br>${setupLink}</p>
                     <p>Best regards,<br>The College Admin Team</p>
                 `
-            };
-
-            // Send email asynchronously (don't block the response)
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error('❌ Error sending admission approval email:', error.message);
-                    console.error('   To:', application.email);
-                    console.error('   Check email configuration in .env file');
-                } else {
-                    console.log('✅ Admission approval email sent successfully!');
-                    console.log('   To:', application.email);
-                    console.log('   Message ID:', info.messageId);
-                }
+            }).then((data) => {
+                console.log('✅ Admission approval email sent successfully!');
+                console.log('   To:', application.email);
+                console.log('   Email ID:', data.id);
+            }).catch((error) => {
+                console.error('❌ Error sending admission approval email:', error.message);
+                console.error('   To:', application.email);
+                console.error('   Check RESEND_API_KEY in environment variables');
             });
         } else if (status === 'REJECTED') {
-            // Send rejection email
-            const mailOptions = {
-                from: process.env.EMAIL_USER,
+            // Send rejection email using Resend
+            resend.emails.send({
+                from: 'College ERP <onboarding@resend.dev>',
                 to: application.email,
                 subject: 'Admission Application - Update',
                 html: `
@@ -186,25 +172,19 @@ const decideAdmission = async (req, res) => {
                     <p>We appreciate your interest and wish you the best in your future endeavors.</p>
                     <p>Best regards,<br>The College Admin Team</p>
                 `
-            };
-
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error('❌ Error sending rejection email:', error.message);
-                    console.error('   To:', application.email);
-                } else {
-                    console.log('✅ Rejection email sent successfully!');
-                    console.log('   To:', application.email);
-                    console.log('   Message ID:', info.messageId);
-                }
+            }).then((data) => {
+                console.log('✅ Rejection email sent successfully!');
+                console.log('   To:', application.email);
+            }).catch((error) => {
+                console.error('❌ Error sending rejection email:', error.message);
             });
         } else if (status === 'REAPPLY') {
-            // Send reapply request email
+            // Send reapply request email using Resend
             const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
             const applyLink = `${frontendUrl}/apply`;
 
-            const mailOptions = {
-                from: process.env.EMAIL_USER,
+            resend.emails.send({
+                from: 'College ERP <onboarding@resend.dev>',
                 to: application.email,
                 subject: 'Admission Application - Resubmission Required',
                 html: `
@@ -221,17 +201,11 @@ const decideAdmission = async (req, res) => {
                     <p>We look forward to receiving your updated application.</p>
                     <p>Best regards,<br>The College Admin Team</p>
                 `
-            };
-
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error('❌ Error sending reapply email:', error.message);
-                    console.error('   To:', application.email);
-                } else {
-                    console.log('✅ Reapply request email sent successfully!');
-                    console.log('   To:', application.email);
-                    console.log('   Message ID:', info.messageId);
-                }
+            }).then((data) => {
+                console.log('✅ Reapply request email sent successfully!');
+                console.log('   To:', application.email);
+            }).catch((error) => {
+                console.error('❌ Error sending reapply email:', error.message);
             });
         }
 
