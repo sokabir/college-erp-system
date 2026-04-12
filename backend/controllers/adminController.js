@@ -374,12 +374,13 @@ const addFaculty = async (req, res) => {
             [newUserId, employeeId, first_name, last_name, department, mobile_number || null, gender || null, dob || null, address || null, profile_pic, designation || null, qualification || null]
         );
 
-        // 6. Send Email Notification
+        // 6. Send Email Notification using Resend
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         const setupLink = `${frontendUrl}/set-password?token=${resetToken}&email=${encodeURIComponent(trimmedEmail)}`;
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
+        // Send email asynchronously
+        resend.emails.send({
+            from: 'College ERP <kabirkamble101@gmail.com>',
             to: trimmedEmail,
             subject: 'Faculty Account Created - Setup Your Password',
             html: `
@@ -393,19 +394,12 @@ const addFaculty = async (req, res) => {
                 <p>If the button doesn't work, copy and paste this link into your browser: <br>${setupLink}</p>
                 <p>Best regards,<br>The College Admin Team</p>
             `
-        };
-
-        // Send email asynchronously (don't block the response)
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error('❌ Error sending faculty welcome email:', error.message);
-                console.error('   To:', trimmedEmail);
-                console.error('   Check email configuration in .env file');
-            } else {
-                console.log('✅ Faculty welcome email sent successfully!');
-                console.log('   To:', trimmedEmail);
-                console.log('   Message ID:', info.messageId);
-            }
+        }).then(() => {
+            console.log('✅ Faculty welcome email sent successfully!');
+            console.log('   To:', trimmedEmail);
+        }).catch((error) => {
+            console.error('❌ Error sending faculty welcome email:', error.message);
+            console.error('   To:', trimmedEmail);
         });
 
         await connection.commit();
