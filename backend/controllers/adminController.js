@@ -131,7 +131,7 @@ const decideAdmission = async (req, res) => {
 
             // Send email asynchronously (don't block the response)
             resend.emails.send({
-                from: 'College ERP <onboarding@resend.dev>', // Use Resend's test domain or your verified domain
+                from: 'College ERP <kabirkamble101@gmail.com>', // Use your verified email
                 to: application.email,
                 subject: 'Admission Approved - Action Required: Setup Your Account',
                 html: `
@@ -156,7 +156,7 @@ const decideAdmission = async (req, res) => {
         } else if (status === 'REJECTED') {
             // Send rejection email using Resend
             resend.emails.send({
-                from: 'College ERP <onboarding@resend.dev>',
+                from: 'College ERP <kabirkamble101@gmail.com>',
                 to: application.email,
                 subject: 'Admission Application - Update',
                 html: `
@@ -184,7 +184,7 @@ const decideAdmission = async (req, res) => {
             const applyLink = `${frontendUrl}/apply`;
 
             resend.emails.send({
-                from: 'College ERP <onboarding@resend.dev>',
+                from: 'College ERP <kabirkamble101@gmail.com>',
                 to: application.email,
                 subject: 'Admission Application - Resubmission Required',
                 html: `
